@@ -1,28 +1,92 @@
 # Python
 __pycache__/
-*.pyc
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Virtual environments
+.env
+.env.*
+!.env.example
+venv/
 .venv/
 env/
-venv/
+ENV/
+conda-env/
 
-# Dados médicos / imagens originais
-data/
-
-# Dataset YOLO com imagens e labels
-data/yolo_dataset/images/
-data/yolo_dataset/labels/
-data/yolo_dataset/*.cache
-
-# Resultados de treino/predição
-runs/
-
-# Pesos base descarregados automaticamente
-yolo11n.pt
-yolo11s.pt
-yolo11m.pt
-yolo11l.pt
-yolo11x.pt
-
-# Sistema
+# IDE and operating system
+.vscode/
+.idea/
+*.code-workspace
 .DS_Store
 Thumbs.db
+desktop.ini
+
+# Private source data
+data/source_images/
+data/raw/
+data/private/
+data/clinical/
+data/**/*.dcm
+data/**/*.dicom
+data/**/*.xlsx
+data/**/*.xls
+data/**/*.csv
+
+# Generated YOLO dataset
+data/yolo_dataset/images/
+data/yolo_dataset/labels/
+data/yolo_dataset/cache/
+data/yolo_dataset/*.cache
+data/generated_labels/
+data/verified_labels/
+data/label_previews/
+
+# Preserve YAML definitions, examples and placeholders
+!data/yolo_dataset/data.yaml
+!data/yolo_dataset/data.example.yaml
+!data/**/.gitkeep
+!data/README.md
+
+# YOLO runs and generated outputs
+runs/
+outputs/
+detections/
+crops/
+previews/
+predictions/
+labels_preview/
+
+# Model weights
+*.pt
+*.pth
+*.ckpt
+*.onnx
+*.engine
+*.tflite
+*.torchscript
+
+# Preserve placement documentation
+!models/**/README.md
+!models/**/.gitkeep
+
+# Experiment tracking and logs
+wandb/
+mlruns/
+logs/
+*.log
+
+# Temporary files
+tmp/
+temp/
+.cache/
+*.tmp
+*.bak
+
+# Jupyter
+.ipynb_checkpoints/
