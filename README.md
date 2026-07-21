@@ -1,433 +1,102 @@
-# Project Bone Identify Age
+# Hand and Wrist Detection with YOLO11
 
-Project Bone Identify Age provides a YOLO-based hand and wrist detection pipeline for pediatric hand/wrist X-ray images.
+> **Recommended repository name:** `hand-wrist-yolo-detection`  
+> **Current repository:** `Project-Bone_Identify_Age`  
+> **Status:** YOLO dataset, training and cropping project
 
-The goal of the project is to automatically locate the useful anatomical region of the hand and wrist in an X-ray image and crop it for later use in bone age estimation or other medical image processing tasks.
+This repository contains the object-detection stage of the bone-age assessment project.
 
-> **Important:** This repository is intended for research and educational purposes only. It is not a certified medical device and must not be used as a standalone clinical decision system.
+Its purpose is to create and verify YOLO labels, train a YOLO11 detector, locate the hand and wrist in radiographs, and export cropped images or a reusable `best.pt` model.
+
+It does **not** estimate bone age. Bone-age regression is performed in the separate `bone-age-estimation-yolo-efficientnet` repository.
+
+> This software is intended for research and educational purposes only. It is not a certified medical device.
 
 ---
 
-## What this project does
-
-The project uses a trained YOLO model to detect the hand/wrist region in an X-ray image.
-
-The pipeline is:
+## Pipeline
 
 ```text
-Input X-ray image
+Original radiographs
         ↓
-YOLO hand detection
+Initial or manually reviewed YOLO labels
         ↓
-Bounding box around the hand/wrist
+YOLO dataset creation
         ↓
-Automatic crop
+Dataset validation
         ↓
-Cropped hand image saved to the output folder
+YOLO11 training
+        ↓
+Detection evaluation
+        ↓
+best.pt
+        ↓
+Hand/wrist crops or downstream age-estimation project
 ```
-
-The YOLO bounding box is used directly as the crop region. A small optional padding can be added to avoid cutting fingertips, the thumb, or the distal wrist.
 
 ---
 
 ## Repository structure
 
-Expected project structure:
-
 ```text
-Project-Bone_Identify_Age/
-│
+hand-wrist-yolo-detection/
 ├── data/
 │   └── yolo_dataset/
+│       ├── images/
+│       │   ├── train/
+│       │   ├── val/
+│       │   └── test/
+│       ├── labels/
+│       │   ├── train/
+│       │   ├── val/
+│       │   └── test/
 │       └── data.yaml
-│
 ├── detection/
 │   ├── check_dataset.py
 │   ├── create_yolo_dataset.py
 │   └── train_yolo11.py
-│
 ├── models/
 │   └── yolo_hand/
+│       ├── README.md
 │       └── best.pt
-│
 ├── src/
 │   └── crop_with_yolo.py
-│
 ├── tools/
 │   └── auto_label_xray_region.py
-│
 ├── requirements.txt
 ├── .gitignore
 └── README.md
 ```
 
-### Main files
-
-| File                               | Purpose                                                    |
-| ---------------------------------- | ---------------------------------------------------------- |
-| `models/yolo_hand/best.pt`         | Trained YOLO model for hand/wrist detection.               |
-| `src/crop_with_yolo.py`            | Script used to detect and crop the hand/wrist region.      |
-| `tools/auto_label_xray_region.py`  | Utility script used to generate YOLO labels automatically. |
-| `detection/train_yolo11.py`        | Training script for the YOLO model.                        |
-| `detection/create_yolo_dataset.py` | Creates the YOLO dataset structure.                        |
-| `detection/check_dataset.py`       | Checks if images and labels are correctly paired.          |
-| `data/yolo_dataset/data.yaml`      | YOLO dataset configuration file.                           |
-
 ---
 
-## Requirements
+## Important corrections required before publishing
 
-Recommended environment:
+### 1. Rename the repository
 
-```text
-Python 3.11
-Ultralytics YOLO
-OpenCV
-NumPy
-Pillow
-Matplotlib
-```
+The current name suggests age identification, but the code is a detection and cropping project.
 
-The required Python packages are listed in `requirements.txt`.
-
-Example `requirements.txt`:
-
-```txt
-ultralytics
-opencv-python
-numpy
-pillow
-matplotlib
-```
-
----
-
-## Installation
-
-### 1. Clone the repository
-
-```bash
-git clone https://github.com/Franciscoafonseca/Project-Bone_Identify_Age.git
-cd Project-Bone_Identify_Age
-```
-
-### 2. Create a Python environment
-
-Using Conda:
-
-```bash
-conda create -n bone_identify_age python=3.11 -y
-conda activate bone_identify_age
-```
-
-Or using Python virtual environment:
-
-```bash
-python -m venv .venv
-```
-
-On Windows PowerShell:
-
-```bash
-.venv\Scripts\activate
-```
-
-On macOS/Linux:
-
-```bash
-source .venv/bin/activate
-```
-
-### 3. Install dependencies
-
-```bash
-python -m pip install --upgrade pip
-python -m pip install -r requirements.txt
-```
-
-Check if Ultralytics is installed correctly:
-
-```bash
-yolo version
-```
-
----
-
-## Model file
-
-The trained YOLO model should be located at:
+Recommended name:
 
 ```text
-models/yolo_hand/best.pt
+hand-wrist-yolo-detection
 ```
 
-If this file is missing, the cropping script will not work.
+### 2. Add a reproducible `data.yaml`
 
-Expected structure:
+The repository documentation expects:
 
 ```text
-models/
-└── yolo_hand/
-    └── best.pt
+data/yolo_dataset/data.yaml
 ```
 
----
-
-## How to use the model to crop X-ray images
-
-### Option 1: Crop all images inside a folder
-
-Place your X-ray images inside a local folder, for example:
+Commit either the real configuration without private paths or an example:
 
 ```text
-data/raw/
+data/yolo_dataset/data.example.yaml
 ```
 
-Then run:
-
-```bash
-python src/crop_with_yolo.py --input data/raw --output data/cropped_yolo --preview data/yolo_crop_preview
-```
-
-This will create:
-
-```text
-data/cropped_yolo/
-```
-
-with the cropped hand/wrist images.
-
-It will also create:
-
-```text
-data/yolo_crop_preview/
-```
-
-with preview images showing the YOLO detection box.
-
-### Option 2: Crop a single image
-
-```bash
-python src/crop_with_yolo.py --input path/to/image.jpeg --output output/cropped --preview output/preview
-```
-
-Example:
-
-```bash
-python src/crop_with_yolo.py --input data/raw/13.jpeg --output data/cropped_yolo --preview data/yolo_crop_preview
-```
-
----
-
-## Output folders
-
-After running the cropping script, the output folders will contain:
-
-```text
-data/cropped_yolo/
-```
-
-Cropped images of the detected hand/wrist region.
-
-```text
-data/yolo_crop_preview/
-```
-
-Original images with the predicted YOLO bounding box drawn on top.
-
-The preview folder is useful for checking whether the model is detecting the hand correctly.
-
----
-
-## Cropping parameters
-
-The cropping script supports optional parameters.
-
-### Confidence threshold
-
-Default:
-
-```bash
---conf 0.30
-```
-
-Example:
-
-```bash
-python src/crop_with_yolo.py --input data/raw --output data/cropped_yolo --preview data/yolo_crop_preview --conf 0.30
-```
-
-Use a higher value if the model produces weak or incorrect detections:
-
-```bash
---conf 0.45
-```
-
-Use a lower value if the model fails to detect some hands:
-
-```bash
---conf 0.25
-```
-
-### Horizontal padding
-
-Default:
-
-```bash
---padding-x 0.04
-```
-
-Increase this if the crop is cutting the thumb or fingers on the sides:
-
-```bash
---padding-x 0.08
-```
-
-Decrease this if the crop is too wide:
-
-```bash
---padding-x 0.02
-```
-
-### Vertical padding
-
-Default:
-
-```bash
---padding-y 0.04
-```
-
-Increase this if the crop is cutting fingertips or the wrist:
-
-```bash
---padding-y 0.08
-```
-
-Decrease this if the crop includes too much background:
-
-```bash
---padding-y 0.02
-```
-
-### Disable preview generation
-
-If you only want the cropped images and do not need preview images:
-
-```bash
-python src/crop_with_yolo.py --input data/raw --output data/cropped_yolo --no-preview
-```
-
----
-
-## Recommended command
-
-For most cases, start with:
-
-```bash
-python src/crop_with_yolo.py --input data/raw --output data/cropped_yolo --preview data/yolo_crop_preview --conf 0.30 --padding-x 0.04 --padding-y 0.04
-```
-
-Then inspect the images in:
-
-```text
-data/yolo_crop_preview/
-```
-
-If the boxes look correct, use the cropped images from:
-
-```text
-data/cropped_yolo/
-```
-
----
-
-## Using the YOLO model directly
-
-You can also run YOLO prediction directly from the command line:
-
-```bash
-yolo detect predict model=models/yolo_hand/best.pt source=data/raw save=True conf=0.30 iou=0.45 max_det=1 imgsz=640 project=runs/detect name=predict_raw_max1
-```
-
-Recommended YOLO parameters:
-
-| Parameter |  Value | Purpose                                    |
-| --------- | -----: | ------------------------------------------ |
-| `conf`    | `0.30` | Minimum detection confidence.              |
-| `iou`     | `0.45` | IoU threshold for non-maximum suppression. |
-| `max_det` |    `1` | Keeps only one hand detection per image.   |
-| `imgsz`   |  `640` | Inference image size.                      |
-
-Since each X-ray image should contain one hand/wrist region, `max_det=1` is recommended.
-
----
-
-## Using the model in Python
-
-Example:
-
-```python
-from ultralytics import YOLO
-
-model = YOLO("models/yolo_hand/best.pt")
-
-results = model.predict(
-    source="data/raw/13.jpeg",
-    conf=0.30,
-    iou=0.45,
-    max_det=1,
-    imgsz=640
-)
-
-result = results[0]
-boxes = result.boxes
-
-if boxes is not None and len(boxes) > 0:
-    x1, y1, x2, y2 = boxes.xyxy[0].cpu().numpy()
-    print("Detected box:", x1, y1, x2, y2)
-else:
-    print("No hand detected.")
-```
-
----
-
-## How the crop is generated
-
-The crop is created from the YOLO predicted bounding box.
-
-In simplified form, the logic is:
-
-```python
-box = result.boxes.xyxy[0].cpu().numpy()
-x1, y1, x2, y2 = box
-crop = image[y1:y2, x1:x2]
-```
-
-This means that the blue YOLO detection box defines the region that is cropped from the original X-ray image.
-
----
-
-## Training the YOLO model again
-
-Training is optional. If you only want to use the provided model, you do not need this section.
-
-The expected YOLO dataset structure is:
-
-```text
-data/yolo_dataset/
-│
-├── data.yaml
-├── images/
-│   ├── train/
-│   ├── val/
-│   └── test/
-└── labels/
-    ├── train/
-    ├── val/
-    └── test/
-```
-
-The `data.yaml` file should contain:
+Example for a single hand/wrist class:
 
 ```yaml
 path: data/yolo_dataset
@@ -437,64 +106,258 @@ val: images/val
 test: images/test
 
 names:
-  0: hand
+  0: hand_wrist
 ```
 
-To check the dataset:
+The `names` section must match the class identifiers used in every label file.
+
+### 3. Remove absolute Windows paths from scripts
+
+All scripts must use paths relative to the repository root or command-line arguments.
+
+Avoid:
+
+```python
+"D:/Projetos/..."
+```
+
+Prefer:
+
+```python
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+DATASET_DIR = ROOT / "data" / "yolo_dataset"
+```
+
+### 4. Add command-line arguments
+
+The main scripts should accept at least:
+
+```text
+--images
+--labels
+--data-yaml
+--model
+--epochs
+--imgsz
+--batch
+--device
+--output
+```
+
+This prevents collaborators from editing source code only to change paths.
+
+### 5. Keep generated labels reviewable
+
+Automatically generated labels are initial proposals, not guaranteed ground truth.
+
+Before final YOLO training:
+
+- draw the boxes over every training image;
+- verify fingertips are included;
+- verify the thumb is included;
+- verify the carpal region is included;
+- verify the distal radius and ulna are included;
+- correct failed or oversized boxes;
+- ensure each image has the expected number of labels.
+
+### 6. Store `best.pt` outside normal Git history
+
+The trained detector should be available through:
+
+- GitHub Releases;
+- Git LFS;
+- private institutional storage.
+
+The repository should contain:
+
+```text
+models/yolo_hand/README.md
+```
+
+explaining how to obtain and place the weight file.
+
+### 7. Record the YOLO experiment configuration
+
+For every selected model, preserve:
+
+- YOLO version;
+- base checkpoint;
+- number of classes;
+- class names;
+- image size;
+- batch size;
+- epochs;
+- confidence threshold;
+- IoU threshold;
+- data split;
+- random seed;
+- mAP@50;
+- mAP@50–95;
+- precision;
+- recall.
+
+---
+
+## Installation
+
+Recommended Python version:
+
+```text
+Python 3.11
+```
+
+Create the environment:
+
+```bash
+conda create -n hand_wrist_yolo python=3.11 -y
+conda activate hand_wrist_yolo
+python -m pip install -r requirements.txt
+```
+
+Verify Ultralytics:
+
+```bash
+python -c "from ultralytics import YOLO; print('YOLO OK')"
+```
+
+---
+
+## Dataset placement
+
+Do not commit private radiographs.
+
+Expected generated dataset:
+
+```text
+data/yolo_dataset/
+├── images/
+│   ├── train/
+│   ├── val/
+│   └── test/
+├── labels/
+│   ├── train/
+│   ├── val/
+│   └── test/
+└── data.yaml
+```
+
+Each image must have a label file with the same base name:
+
+```text
+images/train/15.jpg
+labels/train/15.txt
+```
+
+YOLO label format:
+
+```text
+class_id x_center y_center width height
+```
+
+All coordinates must be normalised between 0 and 1.
+
+---
+
+## Generate initial labels
+
+Run:
+
+```bash
+python tools/auto_label_xray_region.py
+```
+
+Recommended future command-line version:
+
+```bash
+python tools/auto_label_xray_region.py \
+  --images data/source_images \
+  --labels data/generated_labels \
+  --preview data/label_previews
+```
+
+Inspect all previews before creating the final dataset.
+
+---
+
+## Create the dataset
+
+Run:
+
+```bash
+python detection/create_yolo_dataset.py
+```
+
+Recommended future command-line version:
+
+```bash
+python detection/create_yolo_dataset.py \
+  --images data/source_images \
+  --labels data/verified_labels \
+  --output data/yolo_dataset \
+  --train 0.70 \
+  --val 0.15 \
+  --test 0.15 \
+  --seed 42
+```
+
+The split must be deterministic and saved for reproducibility.
+
+---
+
+## Validate the dataset
+
+Run:
 
 ```bash
 python detection/check_dataset.py
 ```
 
-To train the model:
+The validation must check:
+
+- missing label files;
+- missing image files;
+- duplicated filenames;
+- invalid class identifiers;
+- coordinates outside `[0, 1]`;
+- zero-width or zero-height boxes;
+- empty labels;
+- split overlap.
+
+Do not train while any critical validation error remains.
+
+---
+
+## Train YOLO11
+
+Run the project script:
 
 ```bash
 python detection/train_yolo11.py
 ```
 
-The trained model will be saved in:
-
-```text
-runs/detect/yolo_hand/weights/best.pt
-```
-
-After training, copy the best model to:
-
-```text
-models/yolo_hand/best.pt
-```
-
-Example on Windows:
+Or use Ultralytics directly:
 
 ```bash
-copy runs\detect\yolo_hand\weights\best.pt models\yolo_hand\best.pt
+yolo detect train \
+  model=yolo11n.pt \
+  data=data/yolo_dataset/data.yaml \
+  epochs=100 \
+  imgsz=640 \
+  batch=8 \
+  seed=42
 ```
 
-Example on macOS/Linux:
+Adjust `batch` to the available GPU memory.
 
-```bash
-cp runs/detect/yolo_hand/weights/best.pt models/yolo_hand/best.pt
-```
-
----
-
-## Important privacy note
-
-Do not upload real medical images to a public GitHub repository unless you have explicit permission and the data is fully anonymized.
-
-Recommended files and folders to keep out of GitHub:
+Typical output:
 
 ```text
-data/raw/
-data/cropped/
-data/cropped_yolo/
-data/auto_preview/
-data/auto_debug_masks/
-data/yolo_crop_preview/
-runs/
+runs/detect/train/weights/best.pt
 ```
 
-The trained model can be stored in:
+Copy or link the selected model to:
 
 ```text
 models/yolo_hand/best.pt
@@ -502,112 +365,100 @@ models/yolo_hand/best.pt
 
 ---
 
-## Troubleshooting
+## Evaluate the detector
 
-### `yolo` command not found
+Record at least:
 
-The Python environment is probably not activated.
+- precision;
+- recall;
+- mAP@50;
+- mAP@50–95;
+- per-class results;
+- examples of correct detections;
+- examples of failed detections.
 
-Activate the environment first:
+Do not evaluate the final detector only on training images.
 
-```bash
-conda activate bone_identify_age
-```
+---
 
-Then check:
+## Crop images with the trained model
 
-```bash
-yolo version
-```
-
-If it still fails, run:
-
-```bash
-python -m pip install ultralytics
-```
-
-### `No module named ultralytics`
-
-Install the requirements:
+Run:
 
 ```bash
-python -m pip install -r requirements.txt
+python src/crop_with_yolo.py
 ```
 
-### The model file is missing
+Recommended future command-line version:
 
-Check if this file exists:
+```bash
+python src/crop_with_yolo.py \
+  --model models/yolo_hand/best.pt \
+  --input data/test_images \
+  --output outputs/crops \
+  --conf 0.30 \
+  --iou 0.45 \
+  --imgsz 640
+```
+
+Before using the crops downstream, confirm that:
+
+- the complete hand is visible;
+- no fingertips are cut;
+- the thumb is visible;
+- the wrist is sufficiently included;
+- crop orientation is consistent;
+- background is not excessive.
+
+---
+
+## Connection with the age-estimation repository
+
+The resulting file:
 
 ```text
 models/yolo_hand/best.pt
 ```
 
-If not, copy it from the training output:
+is used by:
 
 ```text
-runs/detect/yolo_hand/weights/best.pt
+bone-age-estimation-yolo-efficientnet
 ```
 
-### The crop cuts the thumb or fingers
-
-Increase horizontal padding:
-
-```bash
---padding-x 0.08
-```
-
-Example:
-
-```bash
-python src/crop_with_yolo.py --input data/raw --output data/cropped_yolo --preview data/yolo_crop_preview --padding-x 0.08
-```
-
-### The crop cuts the fingertips or wrist
-
-Increase vertical padding:
-
-```bash
---padding-y 0.08
-```
-
-Example:
-
-```bash
-python src/crop_with_yolo.py --input data/raw --output data/cropped_yolo --preview data/yolo_crop_preview --padding-y 0.08
-```
-
-### The model detects more than one box
-
-Use `max_det=1`.
-
-In the provided cropping script, this is already configured internally.
+The age-estimation repository should load the detector for inference only. YOLO training data and YOLO training outputs do not need to be duplicated there.
 
 ---
 
-## Suggested workflow for a new user
+## Privacy
 
-Recommended workflow:
+Never commit:
+
+- radiographs;
+- DICOM files;
+- patient identifiers;
+- spreadsheets containing dates or clinical data;
+- previews that retain identifying annotations;
+- private credentials.
+
+---
+
+## Recommended repository topics
 
 ```text
-1. Clone the repository.
-2. Install dependencies.
-3. Confirm that models/yolo_hand/best.pt exists.
-4. Put X-ray images in data/raw/ or another local folder.
-5. Run src/crop_with_yolo.py.
-6. Check previews in data/yolo_crop_preview/.
-7. Use cropped images from data/cropped_yolo/.
-```
-
-Recommended command:
-
-```bash
-python src/crop_with_yolo.py --input data/raw --output data/cropped_yolo --preview data/yolo_crop_preview --conf 0.30 --padding-x 0.04 --padding-y 0.04
+yolo11
+object-detection
+hand-xray
+medical-imaging
+pytorch
+ultralytics
+computer-vision
 ```
 
 ---
 
-## Disclaimer
+## License
 
-This project is for research, academic and educational use only.
+Add a project licence.
 
-The model detects and crops the hand/wrist region in X-ray images, but it does not provide a medical diagnosis. Any clinical use requires validation by qualified professionals and compliance with applicable medical regulations.
+Ultralytics, pretrained weights and medical datasets may have separate licences and usage restrictions.
